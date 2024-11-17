@@ -7,15 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="clientapp\client-app\src\Navigation\**" />
+    <Content Remove="clientapp\client-app\src\Navigation\**" />
+    <EmbeddedResource Remove="clientapp\client-app\src\Navigation\**" />
+    <None Remove="clientapp\client-app\src\Navigation\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.0.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.16" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="clientapp\" />
   </ItemGroup>
 
 </Project>
