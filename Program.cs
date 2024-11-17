@@ -1,3 +1,6 @@
+using RASP_Redis.Models;
+using RASP_Redis.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Redis Cache
@@ -16,8 +19,17 @@ builder.Services.AddSession(options =>
 });
 
 // Add services to the container.
+builder.Services.Configure<BookStoreDatabaseSettings>(
+    builder.Configuration.GetSection("BookStoreDatabase"));
 
-builder.Services.AddControllers();
+
+// Takes direct dependency on MongoClient
+builder.Services.AddSingleton<BooksService>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(
+    options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
