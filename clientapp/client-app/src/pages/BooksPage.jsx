@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
-import Books from '../components/Books.jsx';
-import Error from '../components/Error.jsx';
+import Books from '../components/props/Books.jsx';
+import Error from '../components/props/Error.jsx';
 import { fetchBooks } from '../services/booksService.js';
 
 const BooksPage = () => {
