@@ -1,20 +1,20 @@
 ﻿import { useEffect, useState } from 'react';
 import Books from '../components/Books.jsx';
+import Error from '../components/Error.jsx';
+import { fetchBooks } from '../services/booksService.js';
 
 const BooksPage = () => {
     const [booksData, setBooksData] = useState([]);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch('http://localhost:5275/api/books');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const data = await response.json();
+                const data = await fetchBooks();
+
                 setBooksData(data);
             } catch (err) {
-                console.error('Error fetching books data:', err);
+                setError(err);
             }
         };
 
@@ -41,6 +41,11 @@ const BooksPage = () => {
                     />
                 )
             })}
+            {error &&
+                <Error
+                    error={error}
+                />
+            }
         </>
     )
 }
