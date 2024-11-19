@@ -17,6 +17,7 @@ namespace RASP_Redis.Controllers
             // Setting a cache value
             await _cache.SetStringAsync("myKey", "myValue", new DistributedCacheEntryOptions
             {
+                
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
             });
 

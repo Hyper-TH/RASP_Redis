@@ -10,13 +10,13 @@ namespace RASP_Redis.Models
         [BsonRepresentation(BsonType.ObjectId)] // Allow passing parameter as type string
         public string? Id { get; set; } // Required for mapping the CLR object to the collection
 
+        public string ISBN { get; set; } = null!;
         [BsonElement("Name")]
         [JsonPropertyName("Name")]
         public string BookName { get; set; } = null!;   // Property name
         public decimal Price { get; set; }
         public string Category { get; set; } = null!;
         public string Author { get; set; } = null!;
-
 
     }
 }

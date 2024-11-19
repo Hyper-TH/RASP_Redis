@@ -26,6 +26,9 @@ namespace RASP_Redis.Services
         public async Task<Book?> GetAsync(string id) =>
             await _booksCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
+        public async Task<Book?> GetByISBNAsync(string isbn) =>
+            await _booksCollection.Find(book => book.ISBN == isbn).FirstOrDefaultAsync();
+
         public async Task CreateAsync(Book newBook) => 
             await _booksCollection.InsertOneAsync(newBook);
 
