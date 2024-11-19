@@ -2,6 +2,7 @@
 import Books from '../components/props/Books.jsx';
 import Error from '../components/props/Error.jsx';
 import { fetchBooks } from '../services/booksService.js';
+import BookForm from '../components/BookForm.jsx';
 
 const BooksPage = () => {
     const [booksData, setBooksData] = useState([]);
@@ -41,6 +42,9 @@ const BooksPage = () => {
                     />
                 )
             })}
+
+            <BookForm />
+
             {error &&
                 <Error
                     error={error}

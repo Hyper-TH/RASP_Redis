@@ -1,5 +1,9 @@
-﻿import { fetchData } from "./fetchData";
+﻿import { fetchAllBooks, fetchBook } from "./fetchData";
 
 export const fetchBooks = async () => {
-    return fetchData(`/books`);
+    return fetchAllBooks(`/books`);
+};
+
+export const fetchOneBook = async (isbn) => {
+    return fetchBook(`/books/${isbn}`);
 };
