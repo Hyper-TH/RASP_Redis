@@ -75,12 +75,27 @@ namespace RASP_Redis.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(Book newBook)
+        public async Task<IActionResult> Post([FromBody] Book newBook)
         {
-            await _booksService.CreateAsync(newBook);
+            if (newBook == null || string.IsNullOrEmpty(newBook.ISBN))
+            {
+                return BadRequest("Invalid book data");
+            }
 
-            return CreatedAtAction(nameof(Get), new { id = newBook.Id }, newBook);
+            try
+            {
+                await _booksService.CreateAsync(newBook);
+
+                return CreatedAtAction(nameof(Get), new { id = newBook.Id }, newBook);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error creating book: {ex.Message}");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating this book.");
+            }
         }
+
 
         [HttpPut("{id:length(24)}")]
         public async Task<IActionResult> Update(string id, Book updatedBook)
