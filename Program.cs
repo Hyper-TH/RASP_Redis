@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using RASP_Redis.Models;
 using RASP_Redis.Services;
 
@@ -24,8 +26,23 @@ builder.Services.Configure<BookStoreDatabaseSettings>(
     builder.Configuration.GetSection("BookStoreDatabase"));
 
 
-// Takes direct dependency on MongoClient
-builder.Services.AddSingleton<BooksService>();
+// Register Books collection
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<BookStoreDatabaseSettings>>().Value;
+    var client = new MongoClient(settings.ConnectionString); // Creates the client here
+    var database = client.GetDatabase(settings.DatabaseName);
+    return database.GetCollection<Book>(settings.BooksCollectionName);
+});
+
+// Register ISBNs collection
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<BookStoreDatabaseSettings>>().Value;
+    var client = new MongoClient(settings.ConnectionString); // Creates the client here
+    var database = client.GetDatabase(settings.DatabaseName);
+    return database.GetCollection<ISBN>(settings.ISBNsCollectionName);
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(
@@ -45,6 +62,9 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+builder.Services.AddSingleton<BooksService>();
+builder.Services.AddSingleton<ISBNsService>();
 
 var app = builder.Build();
 
