@@ -2,7 +2,7 @@
 import Books from '../components/props/Books.jsx';
 import Error from '../components/props/Error.jsx';
 import { fetchBooks } from '../services/booksService.js';
-import BookForm from '../components/BookForm.jsx';
+import FindBookForm from '../components/FindBookForm.jsx';
 
 const BooksPage = () => {
     const [booksData, setBooksData] = useState([]);
@@ -43,13 +43,9 @@ const BooksPage = () => {
                 )
             })}
 
-            <BookForm />
+            <FindBookForm />
 
-            {error &&
-                <Error
-                    error={error}
-                />
-            }
+            {error && <Error error={error} />}
         </>
     )
 }

@@ -3,7 +3,7 @@ import Error from './props/Error.jsx';
 import Books from './props/Books.jsx'
 import { fetchOneBook } from '../services/booksService.js';
 
-const BookForm = () => {
+const FindBookForm = () => {
     const [isbn, setISBN] = useState("");
     const [book, setBookData] = useState({});
     const [error, setError] = useState(null);
@@ -73,4 +73,4 @@ const BookForm = () => {
     )
 };
 
-export default BookForm;
+export default FindBookForm;
