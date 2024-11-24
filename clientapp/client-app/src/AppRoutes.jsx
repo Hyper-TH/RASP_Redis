@@ -3,9 +3,20 @@ import * as Pages from './RouteImports.js';
 
 const AppRoutes = () => (
     <Routes>
-        <Route path="/" element={<Pages.HomePage />} />
-        <Route path="/books" element={<Pages.BooksPage />} />
-        <Route path="/addBook" element={<Pages.AddBookPage />} />
+        <Route
+            path="/"
+            element={<Pages.HomePage />}
+        />
+
+        <Route
+            path="/books"
+            element={<Pages.BooksPage backTo="/" />}
+        />
+
+        <Route
+            path="/addBook"
+            element={<Pages.AddBookPage backTo="/" />}
+        />
     </Routes>
 );
 

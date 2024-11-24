@@ -57,10 +57,23 @@ export const postBook = async (endpoint, bookData, options = {}) => {
 
 export const deleteBook = async (endpoint, isbn, options = {}) => {
     try {
-        ;
+        const response = await fetch(`${booksAPI}${endpoint}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(isbn),
+            ...options
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        return await response.json();
     } catch (err) {
         console.error(`Error deleting data to ${booksAPI}${endpoint}`, err);
 
         throw err;
     }
-}
+};
