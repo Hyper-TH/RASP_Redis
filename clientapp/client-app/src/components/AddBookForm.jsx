@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState } from "react";
 import Error from './props/Error.jsx';
 import { addBook } from '../services/booksService.js';
 
@@ -21,9 +21,13 @@ const AddBookForm = () => {
         }))
     };
 
-    const putData = async () => {
+    const putData = async (e) => {
+        e.preventDefault();
+
         try {
-            await addBook(bookData);
+            const data = await addBook(bookData);
+
+            console.log(data);
         } catch (err) {
             console.error('Error:', err);
             setError(err);
@@ -58,7 +62,7 @@ const AddBookForm = () => {
                                 <label>Title</label>
                                 <input
                                     type="text"
-                                    name="name"
+                                    name="Name"
                                     placeholder="Input title here"
                                     value={bookData.Name}
                                     onChange={handleChange}
@@ -70,9 +74,9 @@ const AddBookForm = () => {
                                 <label>Price</label>
                                 <input
                                     type="number"
-                                    name="price"
+                                    name="Price"
                                     placeholder="Input price here"
-                                    value={bookData.price}
+                                    value={bookData.Price}
                                     onChange={handleChange}
                                     required
                                 />
@@ -94,7 +98,7 @@ const AddBookForm = () => {
                                 <label>Author</label>
                                 <input
                                     type="text"
-                                    name="name"
+                                    name="Author"
                                     placeholder="Input author here"
                                     value={bookData.Author}
                                     onChange={handleChange}
@@ -102,7 +106,7 @@ const AddBookForm = () => {
                                 />
                             </div>
 
-                            <button className='submit' onClick={putData}>Submit</button>
+                            <button className="submit"  onClick={putData}>Submit</button>
                         </form>
                     </div>
                 </div>
