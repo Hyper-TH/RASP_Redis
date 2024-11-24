@@ -1,35 +1,49 @@
-﻿using RASP_Redis.Models;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
+﻿using Microsoft.Extensions.Caching.Distributed;
+using RASP_Redis.Models;
 
 namespace RASP_Redis.Services
 {
     public class ISBNsService
     {
-        private readonly IMongoCollection<ISBN> _isbnsCollection;
-        public ISBNsService(IOptions<BookStoreDatabaseSettings> bookStoreDatabaseSettings)
-        {
-            var mongoClient = new MongoClient(
-                bookStoreDatabaseSettings.Value.ConnectionString);
-            
-            var mongoDatabase = mongoClient.GetDatabase(
-                bookStoreDatabaseSettings.Value.ConnectionString);
+        private readonly IDistributedCache _cache;
 
-            _isbnsCollection = mongoDatabase.GetCollection<ISBN>(
-                bookStoreDatabaseSettings.Value.ISBNsCollectionName);
+        public ISBNsService(IDistributedCache cache)
+        {
+            _cache = cache;
         }
 
-        public async Task<List<ISBN>> GetAsync() =>
-            await _isbnsCollection.Find(_ => true).ToListAsync();
+        public async Task<string?> GetCachedDocIdAsync(string isbn)
+        {
+            try
+            {
+                return await _cache.GetStringAsync(isbn);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error accessing cache for ISBN {isbn}: {ex.Message}");
+                return null;
+            }
+        }
 
-        public async Task<ISBN?> GetAsync(string isbn) =>
-            await _isbnsCollection.Find(x => x.Isbn == isbn).FirstOrDefaultAsync();
+        // Cache a single ISBN with its docId
+        public async Task CacheISBNAsync(string isbn, string docId)
+        {
+            if (string.IsNullOrEmpty(isbn) || string.IsNullOrEmpty(docId))
+            {
+                throw new ArgumentException("ISBN and docId must not be null or empty.");
+            }
 
-        public async Task CreateAsync(ISBN newISBN) =>
-            await _isbnsCollection.InsertOneAsync(newISBN);
+            var cacheOptions = new DistributedCacheEntryOptions();
 
-        public async Task RemoveAsync(string isbn) =>
-            await _isbnsCollection.DeleteOneAsync(x => x.Isbn == isbn);
+
+            // Store docId with ISBN as key
+            await _cache.SetStringAsync(isbn, docId, cacheOptions);
+        }
+
+        public async Task RemovedCachedISBNAsync(string isbn)
+        {
+            await _cache.RemoveAsync(isbn);
+        }
     }
 
 }
