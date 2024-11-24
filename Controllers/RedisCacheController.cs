@@ -15,11 +15,7 @@ namespace RASP_Redis.Controllers
         public async Task<IActionResult> Index()
         {
             // Setting a cache value
-            await _cache.SetStringAsync("myKey", "myValue", new DistributedCacheEntryOptions
-            {
-                
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
-            });
+            await _cache.SetStringAsync("myKey", "myValue", new DistributedCacheEntryOptions());
 
             // Retrieving a cache value
             var value = await _cache.GetStringAsync("myKey");
