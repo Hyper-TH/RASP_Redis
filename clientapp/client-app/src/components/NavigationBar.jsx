@@ -7,8 +7,12 @@ const NavigationBar = () => {
                 See list of books
             </Link>
 
-            <Link to="/addBook" className="btn_collection_bottom">
+            <Link to="/addBook" className="btn_collection_middle">
                 Add a book
+            </Link>
+
+            <Link to="/calendar" className="btn_collection_bottom">
+                Check Calendar
             </Link>
         </>
     );

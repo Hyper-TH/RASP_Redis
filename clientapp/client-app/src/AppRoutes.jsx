@@ -17,6 +17,11 @@ const AppRoutes = () => (
             path="/addBook"
             element={<Pages.AddBookPage backTo="/" />}
         />
+
+        <Route
+            path="/calendar"
+            element={<Pages.CalendarPage backTo="/" />}
+        />
     </Routes>
 );
 
