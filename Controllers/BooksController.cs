@@ -2,6 +2,7 @@
 using RASP_Redis.Services;
 using RASP_Redis.Models;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace RASP_Redis.Controllers
 {
@@ -146,19 +147,37 @@ namespace RASP_Redis.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id:length(24)}")]
-        public async Task<IActionResult> Delete(string id)
+        [HttpDelete("{isbn}")]
+        public async Task<IActionResult> Delete(string isbn)
         {
-            var book = await _booksService.GetAsync(id);
-
-            if (book is null)
+            try
             {
-                return NotFound();
+                var docId = await _isbnsService.GetCachedDocIdAsync(isbn);
+
+                if (string.IsNullOrEmpty(docId))
+                {
+                    return NotFound(new { Message = $"Book with ISBN {isbn} not found in the cache." });
+
+                }
+
+                var document = await _booksService.GetAsync(docId);
+
+                if (document is null)
+                {
+                    return NotFound(new { Message = $"Document with ID {docId} not found." });
+                }
+
+                await _booksService.RemoveAsync(docId);
+                await _isbnsService.RemovedCachedISBNAsync(isbn);
+
+                return CreatedAtAction(nameof(Get), new { isbn });
             }
-
-            await _booksService.RemoveAsync(id);
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error in Get method: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { Message = "An unexpected error occurred while processing your request." });
+            }
 
         }
     }
