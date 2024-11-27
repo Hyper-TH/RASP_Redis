@@ -1,3 +1,7 @@
+/*
+    react-calendar/dist/Calendar.css is modified
+*/
+
 import { useState } from 'react';
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
