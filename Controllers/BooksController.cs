@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RASP_Redis.Services;
 using RASP_Redis.Models;
-using Microsoft.Extensions.Caching.Distributed;
+using RASP_Redis.Services.MongoDB;
+using RASP_Redis.Services.Redis;
 
-// TODO: Create a "buffer" for case scenario where REDIS is down
 namespace RASP_Redis.Controllers
 {
     [ApiController]
@@ -11,12 +10,12 @@ namespace RASP_Redis.Controllers
     public class BooksController : ControllerBase
     {
         private readonly BooksService _booksService;
-        private readonly ISBNsService _isbnsService;
+        private readonly BookStoreRedisService _cache;
 
-        public BooksController(BooksService booksService, ISBNsService isbnsService, IDistributedCache cache)
+        public BooksController(BooksService booksService, BookStoreRedisService isbnCache)
         {
             _booksService = booksService;
-            _isbnsService = isbnsService;
+            _cache = isbnCache;
         }
 
         [HttpPost("cache")]
@@ -24,7 +23,6 @@ namespace RASP_Redis.Controllers
         {
             try
             {
-                // Retrieve all books from MongoDB
                 var books = await _booksService.GetAsync();
 
                 if (books == null || !books.Any())
@@ -32,18 +30,16 @@ namespace RASP_Redis.Controllers
                     return NotFound(new { Message = "No books found to cache." });
                 }
 
-                int newCacheCount = 0; // Counter for newly cached items
+                int newCacheCount = 0; 
                 foreach (var book in books)
                 {
                     if (!string.IsNullOrEmpty(book.ISBN) && !string.IsNullOrEmpty(book.Id))
                     {
-                        // Check if the ISBN is already cached
-                        var cachedDocId = await _isbnsService.GetCachedDocIdAsync(book.ISBN);
+                        var cachedDocId = await _cache.GetCachedDocIdAsync(book.ISBN);
 
                         if (string.IsNullOrEmpty(cachedDocId))
                         {
-                            // Cache only if not already present
-                            await _isbnsService.CacheISBNAsync(book.ISBN, book.Id);
+                            await _cache.CacheISBNAsync(book.ISBN, book.Id);
                             newCacheCount++;
                         }
                     }
@@ -73,22 +69,18 @@ namespace RASP_Redis.Controllers
         {
             try
             {
-                var docId = await _isbnsService.GetCachedDocIdAsync(isbn);
+                var docId = await _cache.GetCachedDocIdAsync(isbn);
 
                 if (string.IsNullOrEmpty(docId))
                 {
                     return NotFound(new { Message = $"Book with ISBN {isbn} not found in the cache." });
                 }
 
-                // Retrieve the document using the docId
                 var document = await _booksService.GetAsync(docId);
 
-                if (document == null)
-                {
-                    return NotFound(new { Message = $"Document with ID {docId} not found." });
-                }
-
-                return Ok(document);
+                return document == null
+                    ? NotFound(new { Message = $"Document with ID {docId} not found." })
+                    : Ok(document);
             }
             catch (Exception ex)
             {
@@ -108,7 +100,7 @@ namespace RASP_Redis.Controllers
 
             try
             {
-                var cachedDocId = await _isbnsService.GetCachedDocIdAsync(newBook.ISBN);
+                var cachedDocId = await _cache.GetCachedDocIdAsync(newBook.ISBN);
                 if (!string.IsNullOrEmpty(cachedDocId))
                 {
                     return Conflict(new { Message = $"ISBN {newBook.ISBN} already exists." });
@@ -116,7 +108,7 @@ namespace RASP_Redis.Controllers
 
                 await _booksService.CreateAsync(newBook);
 
-                await _isbnsService.CacheISBNAsync(newBook.ISBN, newBook.Id);
+                await _cache.CacheISBNAsync(newBook.ISBN, newBook.Id);
 
                 return CreatedAtAction(nameof(Get), new { isbn = newBook.ISBN }, newBook);
             }
@@ -134,7 +126,7 @@ namespace RASP_Redis.Controllers
         {
             try
             {
-                var docId = await _isbnsService.GetCachedDocIdAsync(isbn);
+                var docId = await _cache.GetCachedDocIdAsync(isbn);
 
                 if (string.IsNullOrEmpty(docId))
                 {
@@ -150,9 +142,9 @@ namespace RASP_Redis.Controllers
                 }
 
                 await _booksService.RemoveAsync(docId);
-                await _isbnsService.RemovedCachedISBNAsync(isbn);
+                await _cache.RemoveCachedISBNAsync(isbn);
 
-                return CreatedAtAction(nameof(Get), new { isbn });
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -171,7 +163,7 @@ namespace RASP_Redis.Controllers
                 return BadRequest("Invalid book data");
             }
 
-            var cachedDocId = await _isbnsService.GetCachedDocIdAsync(updatedBook.ISBN);
+            var cachedDocId = await _cache.GetCachedDocIdAsync(updatedBook.ISBN);
 
             if (string.IsNullOrEmpty(cachedDocId))
             {
