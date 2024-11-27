@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using RASP_Redis.Models;
+using RASP_Redis.Models.DatabaseSettings;
 using RASP_Redis.Services.MongoDB;
 using RASP_Redis.Services.Redis;
 using StackExchange.Redis;
@@ -18,6 +19,8 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 // Databases
 builder.Services.Configure<BookStoreDatabaseSettings>(
     builder.Configuration.GetSection("BookStoreDatabase"));
+builder.Services.Configure<ProjectADatabaseSettings>(
+    builder.Configuration.GetSection("ProjectADatabase"));
 
 /* START BOOKSTORE DATABASE */
 // Books Collection
@@ -29,6 +32,42 @@ builder.Services.AddSingleton(sp =>
     return database.GetCollection<Book>(settings.BooksCollectionName);
 });
 /* END BOOKSTORE DATABASE */
+
+
+/* START PROJECTA DATABASE */
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<ProjectADatabaseSettings>>().Value;
+    var client = new MongoClient(settings.ConnectionString);
+    var database = client.GetDatabase(settings.DatabaseName);
+    return database.GetCollection<User>(settings.UsersCollectionName);
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<ProjectADatabaseSettings>>().Value;
+    var client = new MongoClient(settings.ConnectionString);
+    var database = client.GetDatabase(settings.DatabaseName);
+    return database.GetCollection<Meeting>(settings.MeetingsCollectionName);
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<ProjectADatabaseSettings>>().Value;
+    var client = new MongoClient(settings.ConnectionString);
+    var database = client.GetDatabase(settings.DatabaseName);
+    return database.GetCollection<Attendees>(settings.AttendeesCollectionName);
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<ProjectADatabaseSettings>>().Value;
+    var client = new MongoClient(settings.ConnectionString);
+    var database = client.GetDatabase(settings.DatabaseName);
+    return database.GetCollection<UserMeetings>(settings.UserMeetingsCollectionName);
+});
+/* END PROJECTA DATABASE */
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(
@@ -50,9 +89,12 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSingleton<BooksService>();
+builder.Services.AddSingleton<UsersService>();
+builder.Services.AddSingleton<MeetingsService>();
+builder.Services.AddSingleton<AttendeesService>();
+builder.Services.AddSingleton<UserMeetingsService>();
 
 builder.Services.AddSingleton<BookStoreRedisService>();
-//builder.Services.AddSingleton<ProjectARedisService>();
 
 var app = builder.Build();
 
