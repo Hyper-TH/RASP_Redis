@@ -7,17 +7,31 @@ import ReturnButton from '../components/ReturnButton';
 
 const CalendarPage = ({ backTo }) => {
     const [date, setDate] = useState(new Date());
+    const [darkMode, setDarkMode] = useState(false);
+
     const onChange = (newDate) => {
         setDate(newDate);
-    }
+    };
+
+    const toggle = () => {
+        setDarkMode(!darkMode);
+    };
 
     return (
         <>
             <Link to={backTo}>
                 <ReturnButton />
             </Link>
-            <div>
+
+            <div className={darkMode ? 'dark-mode' : ''}>
+                <button onClick={toggle}>
+                    Toggle {darkMode ? 'Light' : 'Dark'} Mode
+                </button>
+
                 <Calendar onChange={onChange} value={date} />
+            </div>
+
+            <div>
                 <p>Selected date: {date?.toDateString()}</p>
             </div>
         </>
