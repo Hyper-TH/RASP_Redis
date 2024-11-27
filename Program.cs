@@ -1,48 +1,34 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using RASP_Redis.Models;
-using RASP_Redis.Services;
+using RASP_Redis.Services.MongoDB;
+using RASP_Redis.Services.Redis;
+using StackExchange.Redis;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
 
-// Add Redis Cache
-builder.Services.AddStackExchangeRedisCache(options =>
+// Bookstore Redis
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
-    options.Configuration = builder.Configuration["Redis:ConnectionString"];
-    options.InstanceName = builder.Configuration["Redis:InstanceName"];
+    var redisConfig = builder.Configuration["Redis:BookStoreInstance:ConnectionString"];
+    return ConnectionMultiplexer.Connect(redisConfig);
 });
 
-// Optional: Set up Redis-backed sessions
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromSeconds(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
-
-// Add services to the container.
+// Databases
 builder.Services.Configure<BookStoreDatabaseSettings>(
     builder.Configuration.GetSection("BookStoreDatabase"));
 
-
-// Register Books collection
+/* START BOOKSTORE DATABASE */
+// Books Collection
 builder.Services.AddSingleton(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<BookStoreDatabaseSettings>>().Value;
-    var client = new MongoClient(settings.ConnectionString); // Creates the client here
+    var client = new MongoClient(settings.ConnectionString); 
     var database = client.GetDatabase(settings.DatabaseName);
     return database.GetCollection<Book>(settings.BooksCollectionName);
 });
-
-// Register ISBNs collection
-builder.Services.AddSingleton(sp =>
-{
-    var settings = sp.GetRequiredService<IOptions<BookStoreDatabaseSettings>>().Value;
-    var client = new MongoClient(settings.ConnectionString); // Creates the client here
-    var database = client.GetDatabase(settings.DatabaseName);
-    return database.GetCollection<ISBN>(settings.ISBNsCollectionName);
-});
+/* END BOOKSTORE DATABASE */
 
 builder.Services.AddControllers()
     .AddJsonOptions(
@@ -52,7 +38,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add CORS policy
+// CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins, policy =>
@@ -64,7 +50,9 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddSingleton<BooksService>();
-builder.Services.AddSingleton<ISBNsService>();
+
+builder.Services.AddSingleton<BookStoreRedisService>();
+//builder.Services.AddSingleton<ProjectARedisService>();
 
 var app = builder.Build();
 
