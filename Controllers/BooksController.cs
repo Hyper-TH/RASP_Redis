@@ -2,8 +2,8 @@
 using RASP_Redis.Services;
 using RASP_Redis.Models;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.AspNetCore.OutputCaching;
 
+// TODO: Create a "buffer" for case scenario where REDIS is down
 namespace RASP_Redis.Controllers
 {
     [ApiController]
@@ -129,24 +129,6 @@ namespace RASP_Redis.Controllers
             }
         }
 
-
-        [HttpPut("{id:length(24)}")]
-        public async Task<IActionResult> Update(string id, Book updatedBook)
-        {
-            var book = await _booksService.GetAsync(id);
-
-            if (book is null)
-            {
-                return NotFound();
-            }
-
-            updatedBook.Id = book.Id;
-
-            await _booksService.UpdateAsync(id, updatedBook);
-
-            return NoContent();
-        }
-
         [HttpDelete("{isbn}")]
         public async Task<IActionResult> Delete(string isbn)
         {
@@ -179,6 +161,28 @@ namespace RASP_Redis.Controllers
                     new { Message = "An unexpected error occurred while processing your request." });
             }
 
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] Book updatedBook)
+        {
+            if (updatedBook == null || string.IsNullOrEmpty(updatedBook.ISBN))
+            {
+                return BadRequest("Invalid book data");
+            }
+
+            var cachedDocId = await _isbnsService.GetCachedDocIdAsync(updatedBook.ISBN);
+
+            if (string.IsNullOrEmpty(cachedDocId))
+            {
+                return Conflict(new { Message = $"ISBN {updatedBook.ISBN} does not exist." });
+            }
+
+            updatedBook.Id = cachedDocId;
+
+            await _booksService.UpdateAsync(cachedDocId, updatedBook);
+
+            return NoContent();
         }
     }
 }
