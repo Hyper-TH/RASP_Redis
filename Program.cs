@@ -9,12 +9,18 @@ using StackExchange.Redis;
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
 
-// Bookstore Redis
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
     var redisConfig = builder.Configuration["Redis:BookStoreInstance:ConnectionString"];
     return ConnectionMultiplexer.Connect(redisConfig);
-});
+}).AddSingleton<BookStoreRedisService>();
+
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var redisConfig = builder.Configuration["Redis:ProjectAInstance:ConnectionString"];
+    return ConnectionMultiplexer.Connect(redisConfig);
+}).AddSingleton<ProjectARedisService>();
 
 // Databases
 builder.Services.Configure<BookStoreDatabaseSettings>(
@@ -94,7 +100,8 @@ builder.Services.AddSingleton<MeetingsService>();
 builder.Services.AddSingleton<AttendeesService>();
 builder.Services.AddSingleton<UserMeetingsService>();
 
-builder.Services.AddSingleton<BookStoreRedisService>();
+//builder.Services.AddSingleton<BookStoreRedisService>();
+//builder.Services.AddSingleton<ProjectARedisService>();
 
 var app = builder.Build();
 
