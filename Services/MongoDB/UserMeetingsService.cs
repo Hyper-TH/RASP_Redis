@@ -38,5 +38,45 @@ namespace RASP_Redis.Services.MongoDB
 
         public async Task RemoveAsync(string uid) =>
             await _userMeetingsCollection.DeleteOneAsync(x => x.Id == uid);
+
+        public async Task AddMeetingAsync(string uID, string mID)
+        {
+            var updateDefinition = Builders<UserMeetings>.Update.Push(x => x.Meetings, mID);
+
+            var result = await _userMeetingsCollection.UpdateOneAsync(
+                x => x.Id == uID,
+                updateDefinition
+            );
+
+            if (result.MatchedCount == 0)
+            {
+                throw new InvalidOperationException($"No user found with ID {uID}");
+            }
+
+            if (result.ModifiedCount == 0)
+            {
+                Console.WriteLine($"No update made for user {uID}.");
+            }
+        }
+
+        public async Task RemoveMeetingAsync(string uID, string mID)
+        {
+            var updateDefinition = Builders<UserMeetings>.Update.Pull(x => x.Meetings, mID);
+
+            var result = await _userMeetingsCollection.UpdateOneAsync(
+                x => x.Id == uID,
+                updateDefinition
+            );
+
+            if (result.MatchedCount == 0)
+            {
+                throw new InvalidOperationException($"No user found with ID {uID}");
+            }
+
+            if (result.ModifiedCount == 0)
+            {
+                Console.WriteLine($"No update made for user {uID}.");
+            }
+        }
     }
 }
