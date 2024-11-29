@@ -2,6 +2,7 @@
 using RASP_Redis.Services.MongoDB;
 using RASP_Redis.Models;
 using RASP_Redis.Services.Redis;
+using RASP_Redis.Services.MongoDB.Utils;
 
 namespace RASP_Redis.Controllers
 {
@@ -13,16 +14,18 @@ namespace RASP_Redis.Controllers
         private readonly MeetingsService _meetingsService;
         private readonly AttendeesService _attendeesService;
         private readonly UserMeetingsService _userMeetingsService;
+        private readonly UnregisterUsers _unregisterUsers;
         private readonly ProjectARedisService _cache;
 
         public ProjectAController(UsersService usersService, MeetingsService meetingsService, 
                                     AttendeesService attendeesService, UserMeetingsService userMeetings,
-                                    ProjectARedisService projectARedisService)
+                                    UnregisterUsers unregisterUsers, ProjectARedisService projectARedisService)
         {
             _usersService = usersService;
             _meetingsService = meetingsService;
             _attendeesService = attendeesService;
             _userMeetingsService = userMeetings;
+            _unregisterUsers = unregisterUsers;
             _cache = projectARedisService;
         }
 
@@ -74,7 +77,7 @@ namespace RASP_Redis.Controllers
         }
 
         [HttpDelete("unregister/{uID}/{mID}")]
-        public async Task<IActionResult> Delete(string uID, string mID)
+        public async Task<IActionResult> Unregister(string uID, string mID)
         {
             try
             {
@@ -92,6 +95,35 @@ namespace RASP_Redis.Controllers
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error creating Meeting: {ex.Message}", ex);
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { Message = "An error occured while removing the meeting." });
+            }
+        }
+
+        // TODO: Register
+
+        // If the user is NOT the organizer, invoke the RemoveMeeting from UserMeetingsService AND update AttendeesService
+        [HttpDelete("{uID}/{mID}")]
+        public async Task<IActionResult> DeleteMeeting(string uID, string mID)
+        {
+            try
+            {
+                var cachedDocId = await _cache.GetCachedDocIdAsync(mID);
+                if (string.IsNullOrEmpty(cachedDocId))
+                {
+                    return Conflict(new { Message = $"ID {mID} does not exist." });
+                }
+
+                await _unregisterUsers.UnregisterMeetingAsync(mID);
+                await _userMeetingsService.RemoveMeetingAsync(uID, mID);
+                await _cache.RemoveCachedIDAsync(mID);
+
+                return Ok(new { Message = "Meeting removed successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error removing Meeting: {ex.Message}", ex);
 
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { Message = "An error occured while removing the meeting." });

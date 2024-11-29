@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using RASP_Redis.Models;
 using RASP_Redis.Models.DatabaseSettings;
 using RASP_Redis.Services.MongoDB;
+using RASP_Redis.Services.MongoDB.Utils;
 using RASP_Redis.Services.Redis;
 using StackExchange.Redis;
 
@@ -100,8 +101,7 @@ builder.Services.AddSingleton<MeetingsService>();
 builder.Services.AddSingleton<AttendeesService>();
 builder.Services.AddSingleton<UserMeetingsService>();
 
-//builder.Services.AddSingleton<BookStoreRedisService>();
-//builder.Services.AddSingleton<ProjectARedisService>();
+builder.Services.AddSingleton<UnregisterUsers>();
 
 var app = builder.Build();
 
