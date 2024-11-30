@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RASP_Redis.Services.MongoDB;
-using RASP_Redis.Models;
 using RASP_Redis.Services.Redis;
 using RASP_Redis.Services.MongoDB.Utils;
+using RASP_Redis.Models.ProjectA;
+using RASP_Redis.Models.Auth;
 
 namespace RASP_Redis.Controllers
 {
@@ -62,6 +63,7 @@ namespace RASP_Redis.Controllers
                 }
 
                 await _meetingsService.CreateAsync(newMeeting);
+                // TODO: Create new instance in attendees
                 await _userMeetingsService.AddMeetingAsync(newMeeting.Organizer, newMeeting.mID);
                 await _cache.CacheIDAsync(newMeeting.mID, newMeeting.Id);
 
@@ -73,6 +75,31 @@ namespace RASP_Redis.Controllers
 
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { Message = "An error occured while creating the meeting." });
+            }
+        }
+
+        [HttpPut("register/{uID}/{mID}")]
+        public async Task<IActionResult> RegisterMeeting(string uID, string mID)
+        {
+            try
+            {
+                var cachedDocId = await _cache.GetCachedDocIdAsync(mID);
+                if (string.IsNullOrEmpty(cachedDocId))
+                {
+                    return Conflict(new { Message = $"ID {mID} does not exist." });
+                }
+
+                await _userMeetingsService.AddMeetingAsync(uID, mID);
+                await _attendeesService.AddUserToMeetingAsync(uID, mID);
+
+                return Ok(new { Message = "Registered meeting successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error registering Meeting: {ex.Message}", ex);
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { Message = "An error occured while registering the meeting." });
             }
         }
 
@@ -88,20 +115,18 @@ namespace RASP_Redis.Controllers
                 }
 
                 await _userMeetingsService.RemoveMeetingAsync(uID, mID);
-                await _cache.CacheIDAsync(uID, mID);
+                await _attendeesService.RemoveOneAsync(uID, mID);
 
-                return Ok(new { Message = "Meeting removed successfully" });
+                return Ok(new { Message = "Unregistered meeting successfully" });
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error creating Meeting: {ex.Message}", ex);
+                Console.Error.WriteLine($"Error unregistering Meeting: {ex.Message}", ex);
 
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { Message = "An error occured while removing the meeting." });
+                    new { Message = "An error occured while unregistering the meeting." });
             }
         }
-
-        // TODO: Register
 
         // If the user is NOT the organizer, invoke the RemoveMeeting from UserMeetingsService AND update AttendeesService
         [HttpDelete("{uID}/{mID}")]

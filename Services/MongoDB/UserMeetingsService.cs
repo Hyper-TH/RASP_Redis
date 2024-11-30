@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using RASP_Redis.Models.DatabaseSettings;
-using RASP_Redis.Models;
+using RASP_Redis.Models.ProjectA;
 
 namespace RASP_Redis.Services.MongoDB
 {

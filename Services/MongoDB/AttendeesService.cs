@@ -1,7 +1,9 @@
-﻿using RASP_Redis.Models;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using RASP_Redis.Models.DatabaseSettings;
+using System.Security.Cryptography;
+using System;
+using RASP_Redis.Models.ProjectA;
 
 namespace RASP_Redis.Services.MongoDB
 {
@@ -32,11 +34,44 @@ namespace RASP_Redis.Services.MongoDB
 
         public async Task CreateAsync(Attendees newAttendees) =>
             await _AttendeesCollection.InsertOneAsync(newAttendees);
-
-        public async Task UpdateAsync(string mid, Attendees updatedAttendees) =>
-            await _AttendeesCollection.ReplaceOneAsync(x => x.Id == mid, updatedAttendees);
-
         public async Task RemoveAsync(string mid) =>
-            await _AttendeesCollection.DeleteOneAsync(x => x.Id == mid);
+          await _AttendeesCollection.DeleteOneAsync(x => x.Id == mid);
+
+        public async Task AddUserToMeetingAsync(string uid, string mid)
+        {
+            var filter = Builders<Attendees>.Filter.Eq(x => x.Id, mid); 
+            var update = Builders<Attendees>.Update.AddToSet(x => x.Users, uid); 
+
+            var result = await _AttendeesCollection.UpdateOneAsync(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                throw new InvalidOperationException($"Meeting with ID {mid} not found.");
+            }
+
+            if (result.ModifiedCount == 0)
+            {
+                // If no modification, uID might already be in the list
+                Console.WriteLine($"User {uid} is already in the meeting {mid}.");
+            }
+        }
+
+        public async Task RemoveOneAsync(string uid, string mid)
+        {
+            var filter = Builders<Attendees>.Filter.Eq(x => x.Id, mid); 
+            var update = Builders<Attendees>.Update.Pull(x => x.Users, uid); 
+
+            var result = await _AttendeesCollection.UpdateOneAsync(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                throw new InvalidOperationException($"Meeting with ID {mid} not found.");
+            }
+
+            if (result.ModifiedCount == 0)
+            {
+                Console.WriteLine($"User {uid} not found in meeting {mid}.");
+            }
+        }
     }
 }

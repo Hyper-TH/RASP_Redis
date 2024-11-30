@@ -1,7 +1,7 @@
-﻿using RASP_Redis.Models;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using RASP_Redis.Models.DatabaseSettings;
+using RASP_Redis.Models.Auth;
 
 namespace RASP_Redis.Services.MongoDB
 {
