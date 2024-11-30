@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 
-namespace RASP_Redis.Models
+namespace RASP_Redis.Models.ProjectA
 {
     public class Attendees
     {

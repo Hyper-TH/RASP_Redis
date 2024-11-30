@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using System.Text.Json.Serialization;
 
-namespace RASP_Redis.Models
+namespace RASP_Redis.Models.ProjectA
 {
     public class Meeting
     {
