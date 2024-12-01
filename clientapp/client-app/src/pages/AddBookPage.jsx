@@ -1,5 +1,5 @@
 ﻿import { Link } from "react-router-dom";
-import AddBookForm from '../components/AddBookForm.jsx';
+import AddBookForm from '../components/forms/AddBookForm.jsx';
 import ReturnButton from '../components/ReturnButton.jsx'; 
 import PropTypes from "prop-types";
 
