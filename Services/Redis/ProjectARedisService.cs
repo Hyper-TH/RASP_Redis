@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using RASP_Redis.Models;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 
 namespace RASP_Redis.Services.Redis
 {

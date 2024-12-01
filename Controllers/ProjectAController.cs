@@ -4,6 +4,7 @@ using RASP_Redis.Services.Redis;
 using RASP_Redis.Services.MongoDB.Utils;
 using RASP_Redis.Models.ProjectA;
 using RASP_Redis.Models.Auth;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RASP_Redis.Controllers
 {
@@ -11,14 +12,14 @@ namespace RASP_Redis.Controllers
     [Route("api/[controller]")]
     public class ProjectAController : ControllerBase
     {
-        private readonly UsersService _usersService;
+        private readonly UserService _usersService;
         private readonly MeetingsService _meetingsService;
         private readonly AttendeesService _attendeesService;
         private readonly UserMeetingsService _userMeetingsService;
         private readonly UnregisterUsers _unregisterUsers;
         private readonly ProjectARedisService _cache;
 
-        public ProjectAController(UsersService usersService, MeetingsService meetingsService, 
+        public ProjectAController(UserService usersService, MeetingsService meetingsService, 
                                     AttendeesService attendeesService, UserMeetingsService userMeetings,
                                     UnregisterUsers unregisterUsers, ProjectARedisService projectARedisService)
         {
@@ -29,10 +30,6 @@ namespace RASP_Redis.Controllers
             _unregisterUsers = unregisterUsers;
             _cache = projectARedisService;
         }
-
-        [HttpGet("users")]
-        public async Task<List<User>> GetUsers() =>
-            await _usersService.GetAsync();
 
         [HttpGet("meetings")]
         public async Task<List<Meeting>> GetMeetings() =>
@@ -46,6 +43,7 @@ namespace RASP_Redis.Controllers
         public async Task<List<Attendees>> GetUserMeetings() =>
             await _attendeesService.GetAsync();
 
+        //[Authorize]
         [HttpPost("meeting")]
         public async Task<IActionResult> Post([FromBody] Meeting newMeeting)
         {
@@ -54,17 +52,31 @@ namespace RASP_Redis.Controllers
                 return BadRequest("Invalid meeting data");
             }
 
+            Console.WriteLine(newMeeting);
+
             try
             {
-                var cachedDocId = await _cache.GetCachedDocIdAsync(newMeeting.mID);
-                if (!string.IsNullOrEmpty(cachedDocId))
+                string mID;
+                do
                 {
-                    return Conflict(new { Message = $"ID {newMeeting.mID} already exists." });
+                    mID = Guid.NewGuid().ToString("N");
+                    var cachedDocId = await _cache.GetCachedDocIdAsync(mID);
+
+                    if (string.IsNullOrEmpty(cachedDocId))
+                    {
+                        newMeeting.mID = mID;
+                        break;
+                    }
+
+                    Console.WriteLine($"Collision detected for mID: {mID}. Generating a new one.");
                 }
+                while (true);
+                
+                newMeeting.mID = mID;
 
                 await _meetingsService.CreateAsync(newMeeting);
-                // TODO: Create new instance in attendees
-                await _userMeetingsService.AddMeetingAsync(newMeeting.Organizer, newMeeting.mID);
+                // await _attendeesService.CreateAsync(newMeeting);
+                await _userMeetingsService.AddMeetingAsync(newMeeting.Organizer, newMeeting.mID);    // Fails here
                 await _cache.CacheIDAsync(newMeeting.mID, newMeeting.Id);
 
                 return CreatedAtAction(nameof(GetMeetings), new { mID = newMeeting.mID }, newMeeting);
@@ -78,6 +90,7 @@ namespace RASP_Redis.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("register/{uID}/{mID}")]
         public async Task<IActionResult> RegisterMeeting(string uID, string mID)
         {
@@ -103,6 +116,7 @@ namespace RASP_Redis.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("unregister/{uID}/{mID}")]
         public async Task<IActionResult> Unregister(string uID, string mID)
         {
@@ -128,6 +142,7 @@ namespace RASP_Redis.Controllers
             }
         }
 
+        [Authorize]
         // If the user is NOT the organizer, invoke the RemoveMeeting from UserMeetingsService AND update AttendeesService
         [HttpDelete("{uID}/{mID}")]
         public async Task<IActionResult> DeleteMeeting(string uID, string mID)

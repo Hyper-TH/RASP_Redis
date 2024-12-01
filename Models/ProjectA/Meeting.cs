@@ -9,7 +9,7 @@ namespace RASP_Redis.Models.ProjectA
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
-        public string mID { get; set; } = null!;
+        public string? mID { get; set; }
         [BsonElement("Name")]
         [JsonPropertyName("Name")]
         public string Name { get; set; } = null!;

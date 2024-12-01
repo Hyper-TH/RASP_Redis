@@ -44,7 +44,8 @@ namespace RASP_Redis.Controllers
             {
                 Token = token,
                 UID = user.UID,
-                Username = user.Username
+                Username = user.Username,
+                Location = user.Location,
             });
         }
 

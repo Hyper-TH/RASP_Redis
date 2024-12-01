@@ -134,7 +134,7 @@ builder.Services.AddSingleton(sp =>
 // Register Services
 // -----------------
 builder.Services.AddSingleton<BooksService>();
-builder.Services.AddSingleton<UsersService>();
+builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<MeetingsService>();
 builder.Services.AddSingleton<AttendeesService>();
 builder.Services.AddSingleton<UserMeetingsService>();

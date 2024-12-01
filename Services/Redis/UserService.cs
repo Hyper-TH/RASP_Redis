@@ -4,19 +4,25 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using RASP_Redis.Models.Auth;
+using RASP_Redis.Models.ProjectA;
+using RASP_Redis.Services.MongoDB;
 
 namespace RASP_Redis.Services.Redis
 {
     public class UserService : IUserService
     {
         private readonly IMongoCollection<User> _users;
+        private readonly UserMeetingsService _userMeetings;
         private readonly IConfiguration _configuration;
+        private readonly ProjectARedisService _cache;
 
-        public UserService(IMongoClient mongoClient, IConfiguration configuration) 
+        public UserService(IMongoClient mongoClient, IConfiguration configuration, UserMeetingsService userMeetingsService, ProjectARedisService projectARedisService) 
         {
             var database = mongoClient.GetDatabase("ProjectA");
             _users = database.GetCollection<User>("Users");
+            _userMeetings = userMeetingsService;
             _configuration = configuration;
+            _cache = projectARedisService;
         }
 
         public async Task<User> GetUserByUsernameAsync(string username)
@@ -32,12 +38,21 @@ namespace RASP_Redis.Services.Redis
         {
             var user = new User
             {
-                UID = Guid.NewGuid().ToString("N"), // Generate a unique UID
+                UID = Guid.NewGuid().ToString("N"),
                 Username = username,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(password)
             };
 
             await _users.InsertOneAsync(user);
+            await _cache.CacheIDAsync(user.UID, user.Id);
+
+            var userMeetings = new UserMeetings
+            {
+                Id = user.UID,
+                Meetings = Array.Empty<string>()
+            };
+
+            await _userMeetings.CreateAsync(userMeetings); 
         }
 
         public string GenerateJwtToken(User user)
