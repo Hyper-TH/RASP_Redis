@@ -11,8 +11,16 @@ const NavigationBar = () => {
                 Add a book
             </Link>
 
-            <Link to="/calendar" className="btn_collection_bottom">
+            <Link to="/calendar" className="btn_collection_middle">
                 Check Calendar
+            </Link>
+
+            <Link to="/allMeetings" className="btn_collection_middle">
+                Check all meetings
+            </Link>
+
+            <Link to="/addMeeting" className="btn_collection_bottom">
+                Add a meeting
             </Link>
         </>
     );

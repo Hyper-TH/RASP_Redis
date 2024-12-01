@@ -1,5 +1,4 @@
-﻿//import { fetchAllBooks, fetchBook, postBook, deleteBook} from "./fetchData";
-import * as Data from './fetchData';
+﻿import * as Data from './fetchData';
 
 export const fetchBooks = async () => {
     return Data.fetchAllBooks(`/books`);
@@ -16,3 +15,7 @@ export const addBook = async (bookData) => {
 export const deleteBook = async (isbn) => {
     return Data.deleteBook(`/books/${isbn}`);
 };
+
+export const addMeeting = async (meetingData, token) => {
+    return Data.postMeeting(`/ProjectA/meeting`, meetingData, token);
+}

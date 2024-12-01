@@ -1,8 +1,8 @@
-﻿const booksAPI = import.meta.env.VITE_BOOKS_API;
+﻿const API = import.meta.env.VITE_API;
 
 export const fetchAllBooks = async (endpoint, options = {}) => {
     try {
-        const response = await fetch(`${booksAPI}${endpoint}`, options);
+        const response = await fetch(`${API}${endpoint}`, options);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -10,7 +10,7 @@ export const fetchAllBooks = async (endpoint, options = {}) => {
 
         return await response.json();
     } catch (err) {
-        console.error(`Error fetching data from ${booksAPI}${endpoint}`, err);
+        console.error(`Error fetching data from ${API}${endpoint}`, err);
 
         throw err;
     }
@@ -18,7 +18,7 @@ export const fetchAllBooks = async (endpoint, options = {}) => {
 
 export const fetchBook = async (endpoint, options = {}) => {
     try {
-        const response = await fetch(`${booksAPI}${endpoint}`, options);
+        const response = await fetch(`${API}${endpoint}`, options);
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -26,7 +26,7 @@ export const fetchBook = async (endpoint, options = {}) => {
 
         return await response.json();
     } catch (err) {
-        console.error(`Error fetching data from ${booksAPI}${endpoint}`, err);
+        console.error(`Error fetching data from ${API}${endpoint}`, err);
 
         throw err;
     }
@@ -34,7 +34,7 @@ export const fetchBook = async (endpoint, options = {}) => {
 
 export const postBook = async (endpoint, bookData, options = {}) => {
     try {
-        const response = await fetch(`${booksAPI}${endpoint}`, {
+        const response = await fetch(`${API}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export const postBook = async (endpoint, bookData, options = {}) => {
 
         return await response.json();
     } catch (err) {
-        console.error(`Error posting data to ${booksAPI}${endpoint}`, err);
+        console.error(`Error posting data to ${API}${endpoint}`, err);
 
         throw err;
     }
@@ -57,7 +57,7 @@ export const postBook = async (endpoint, bookData, options = {}) => {
 
 export const deleteBook = async (endpoint, isbn, options = {}) => {
     try {
-        const response = await fetch(`${booksAPI}${endpoint}`, {
+        const response = await fetch(`${API}${endpoint}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -72,8 +72,33 @@ export const deleteBook = async (endpoint, isbn, options = {}) => {
 
         return await response.json();
     } catch (err) {
-        console.error(`Error deleting data to ${booksAPI}${endpoint}`, err);
+        console.error(`Error deleting data to ${API}${endpoint}`, err);
 
         throw err;
     }
 };
+
+export const postMeeting = async (endpoint, meetingData, token, options = {}) => {
+    try {
+        const response = await fetch(`${API}${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(meetingData),
+            ...options
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        return await response.json();
+
+    } catch (err) {
+        console.error(`Error posting data to ${API}${endpoint}`, err);
+
+        throw err;
+    }
+}

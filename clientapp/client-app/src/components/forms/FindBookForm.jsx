@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import Error from '../props/Error.jsx';
 import Books from '../props/Books.jsx'
-import { fetchOneBook } from '../../services/booksService.js';
+import { fetchOneBook } from '../../services/apiService.js';
 
 const FindBookForm = () => {
     const [isbn, setISBN] = useState("");

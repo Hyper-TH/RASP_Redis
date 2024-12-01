@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Books from '../components/props/Books.jsx';
 import Error from '../components/props/Error.jsx';
-import { fetchBooks, deleteBook } from '../services/booksService.js';
+import { fetchBooks, deleteBook } from '../services/apiService.js';
 import FindBookForm from '../components/forms/FindBookForm.jsx';
 import PropTypes from "prop-types";
 import ReturnButton from "../components/ReturnButton.jsx";
